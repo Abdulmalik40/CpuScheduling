@@ -134,14 +134,6 @@ def priority_scheduling():
     }
 
 def round_robin_scheduling():
-    # 1- Iterate the input values for the list
-    # 2- Iterate the waiting time
-    # 3- make a copy of the burst time
-    # 4- if the remaining burst time total time will add the quantum time
-    # 5- the other case is if it is lower or equal then add then remaining time
-    # 6- calculate the waiting time and turnaround time
-
-    # Round Robin
     try:
         n = int(input("Enter the number of Process: "))
         if n <= 0:
@@ -172,26 +164,27 @@ def round_robin_scheduling():
         print("Please enter a valid integer for time quantum.")
         return
 
-    # Tracking remaining burst time
     remaining_bt = burst_times.copy()
-    turnaround_time = [0] * n  # Store the completion time
+    turnaround_time = [0] * n
     total_time = 0
-    context_switches = 0  # Initialize context switch counter
+    context_switches = 0
+    start_time = [-1] * n  # Track first execution time
 
     while True:
         done = True
         for i in range(n):
-            if remaining_bt[i] > 0:  # Check if the process has remaining burst time
+            if remaining_bt[i] > 0:
                 done = False
+                if start_time[i] == -1:  # Record first execution time
+                    start_time[i] = total_time
                 if remaining_bt[i] > quantum:
-                    total_time += quantum  # For example, 24 > 4, the total time will be 4
-                    remaining_bt[i] -= quantum  # Remaining burst time will be 20
-                    context_switches += 1  # Increment counter when quantum expires
+                    total_time += quantum
+                    remaining_bt[i] -= quantum
+                    context_switches += 1
                 else:
-                    total_time += remaining_bt[i]  # Add the remaining bt to the total time
+                    total_time += remaining_bt[i]
                     turnaround_time[i] = total_time
-                    remaining_bt[i] = 0  # There is no remaining burst time
-                    # Only count as context switch if there are more processes to execute
+                    remaining_bt[i] = 0
                     if not all(bt == 0 for bt in remaining_bt):
                         context_switches += 1
         if done:
@@ -201,10 +194,10 @@ def round_robin_scheduling():
     avg_wt = sum(waiting_time) / n
     avg_tat = sum(turnaround_time) / n
 
-    print("\n{:<10} {:<10} {:<15} {:<15}".format("Process", "Burst", "Turnaround", "Waiting"))
+    print("\n{:<10} {:<10} {:<15} {:<15} {:<15}".format("Process", "Burst", "Turnaround", "Waiting", "Response"))
     for i in range(n):
-        print("{:<10} {:<10} {:<15} {:<15}".format(
-            f"P{i + 1}", burst_times[i], turnaround_time[i], waiting_time[i]
+        print("{:<10} {:<10} {:<15} {:<15} {:<15}".format(
+            f"P{i + 1}", burst_times[i], turnaround_time[i], waiting_time[i], start_time[i]
         ))
 
     print(f"\nAverage Waiting Time: {avg_wt:.2f}")
@@ -218,7 +211,8 @@ def round_robin_scheduling():
         "quantum": quantum,
         "avg_waiting": avg_wt,
         "avg_turnaround": avg_tat,
-        "context_switches": context_switches
+        "context_switches": context_switches,
+        "response_times": start_time
     }
 
 def sjf_non_preemptive():
@@ -303,13 +297,6 @@ def sjf_non_preemptive():
 
 
 def sjf_preemptive():
-    # 1- iterate the values
-    # 2-  Store in dictionary the process and arrival time with burst time and remaining burst time
-    # 3- varibles for tracking , time , complete process , start for track time , finsh to mark
-    # 4- store in the list the process have arrived and still have time
-    # 5- take the shortest process from the list
-    # 6- the process hasn't started record the start time
-    # 7- then mark the process and calculate
     try:
         n = int(input("Enter the number of processes: "))
         if n <= 0:
@@ -327,7 +314,6 @@ def sjf_preemptive():
             if at < 0 or bt <= 0:
                 print("Arrival time must be ≥ 0 and Burst time must be > 0.")
                 return
-            # 2-  Store in dictionary the process and arrival time with burst time and remaining burst time
             processes.append({'pid': i, 'arrival': at, 'burst': bt, 'remaining': bt})
         except ValueError:
             print("Invalid input. Please enter integers only.")
@@ -341,35 +327,28 @@ def sjf_preemptive():
     finished = [False] * n
 
     while complete < n:
-        # Get ready processes
         ready = [p for p in processes if p['arrival'] <= time and p['remaining'] > 0]
-
         if ready:
-            # Choose process with shortest remaining time
             current = min(ready, key=lambda p: p['remaining'])
             pid = current['pid']
-
             if start_times[pid] == -1:
                 start_times[pid] = time
-
-            # Run for 1 time unit
             current['remaining'] -= 1
             time += 1
-
-            # If process is finished
             if current['remaining'] == 0:
                 complete += 1
                 turnaround_time[pid] = time - current['arrival']
                 waiting_time[pid] = turnaround_time[pid] - current['burst']
                 finished[pid] = True
         else:
-            time += 1  # idle
+            time += 1
 
-    # Print results manually (without pandas)
-    print("\n{:<10} {:<15} {:<15} {:<15} {:<15}".format("Process", "Arrival", "Burst", "Waiting", "Turnaround"))
+    response_time = [start_times[i] - processes[i]['arrival'] for i in range(n)]
+
+    print("\n{:<10} {:<15} {:<15} {:<15} {:<15} {:<15}".format("Process", "Arrival", "Burst", "Waiting", "Turnaround", "Response"))
     for i in range(n):
-        print("{:<10} {:<15} {:<15} {:<15} {:<15}".format(
-            f"P{i}", processes[i]['arrival'], processes[i]['burst'], waiting_time[i], turnaround_time[i]
+        print("{:<10} {:<15} {:<15} {:<15} {:<15} {:<15}".format(
+            f"P{i}", processes[i]['arrival'], processes[i]['burst'], waiting_time[i], turnaround_time[i], response_time[i]
         ))
 
     print(f"\nAverage Waiting Time: {sum(waiting_time) / n:.2f}")
@@ -381,5 +360,6 @@ def sjf_preemptive():
         "waiting_times": waiting_time,
         "turnaround_times": turnaround_time,
         "avg_waiting": sum(waiting_time) / n,
-        "avg_turnaround": sum(turnaround_time) / n
+        "avg_turnaround": sum(turnaround_time) / n,
+        "response_times": response_time
     }

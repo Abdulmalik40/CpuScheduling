@@ -26,7 +26,6 @@ def main():
             break
         else:
             print("Invalid choice! Please select a valid option (1-6).")
-      
 def fcfs_scheduling():
     # 1- Iterate the input values for the list
     # 2.0 Iterate the waiting time 
@@ -35,43 +34,50 @@ def fcfs_scheduling():
 
     # 1- Collect the Values ties
     # FCFS
+    # 1- We take number of process from the user 
+    # 1.1- Add Arrival Time input for each process
+    # 2- iterate the burst time and arrival time for each process , inserting in array
+    # 2.1- Group all info in a tuple (index, arrival, burst)
+    # 2.2- Sort processes by arrival time to follow FCFS
+
     n = int(input("Enter the number of processes: "))
     processes = []
 
-    # Collect Arrival and Burst Times
     for i in range(n):
-        at = int(input(f"Enter Arrival Time for P{i + 1}: "))
-        bt = int(input(f"Enter Burst Time for P{i + 1}: "))
-        processes.append((i + 1, at, bt))  # (Process ID, Arrival Time, Burst Time)
+        at = int(input(f"Enter Arrival time for Process {i+1}: "))   # 1.1- Arrival time input
+        bt = int(input(f"Enter Burst time for Process {i+1}: "))     # 2- Burst time input
+        processes.append((i, at, bt))  # 2.1- store (index, arrival, burst)
 
-    # Sort by Arrival Time
+    # 2.2- Sort the list by arrival time
     processes.sort(key=lambda x: x[1])
 
     waiting_times = [0] * n
     turnaround_times = [0] * n
     start_time = 0
 
-    for i in range(n):
-        pid, at, bt = processes[i]
+    for idx, (original_idx, at, bt) in enumerate(processes):
         if start_time < at:
-            start_time = at  # Wait until the process arrives
-        waiting_times[i] = start_time - at
-        turnaround_times[i] = waiting_times[i] + bt
-        start_time += bt
+            start_time = at  
+        waiting_times[original_idx] = start_time - at
+        turnaround_times[original_idx] = waiting_times[original_idx] + bt
+        start_time += bt  
+
+    burst_times = [bt for (_, _, bt) in sorted(processes, key=lambda x: x[0])]
+    arrival_times = [at for (_, at, _) in sorted(processes, key=lambda x: x[0])]
 
     avg_waiting = sum(waiting_times) / n
     avg_turnaround = sum(turnaround_times) / n
 
-    print("\nProcess\tArrival\tBurst\tWaiting\tTurnaround")
-    for i in range(n):
-        pid, at, bt = processes[i]
-        print(f"P{pid}\t\t{at}\t\t{bt}\t\t{waiting_times[i]}\t\t{turnaround_times[i]}")
+    print("\nProcess\tArrival Time\tBurst Time\tWaiting Time\tTurnAround Time")
+    for i in range(n):  # Iterate through the values of the list
+        print(f"P{i+1}\t{arrival_times[i]}\t\t{burst_times[i]}\t\t{waiting_times[i]}\t\t{turnaround_times[i]}")
 
-    print(f"\nAverage Waiting Time: {avg_waiting:.2f}")
-    print(f"Average Turnaround Time: {avg_turnaround:.2f}")
+    print(f"\nAverage Waiting Time-- {avg_waiting:.2f}")
+    print(f"Average TurnAround Time-- {avg_turnaround:.2f}")
 
     return {
-        "processes": processes,
+        "arrival_times": arrival_times,
+        "burst_times": burst_times,
         "waiting_times": waiting_times,
         "turnaround_times": turnaround_times,
         "avg_waiting": avg_waiting,
@@ -137,6 +143,7 @@ def round_robin_scheduling():
     # 4- if the remaining burst time total time will add the quantum time
     # 5- the other case is if it is lower or equal then add then remaining time 
     # 6- calculate the waiting time and turnaround time
+    # 7- calculate the response time = first time the process gets CPU - arrival time (arrival time is assumed 0 for all)
 
     # Round Robin
     n = int(input("Enter the number of Process: "))
@@ -150,12 +157,17 @@ def round_robin_scheduling():
     # Tracking remaining burst time
     remaining_bt = burst_times.copy()
     turnaround_time = [0] * n  # Store the completion time
+    response_time = [-1] * n  # 7- Initialize response time, -1 means not yet started
     total_time = 0
 
     while True:
         done = True 
         for i in range(n):
             if remaining_bt[i] > 0:  # Check if the process has remaining burst time
+                # 7- First time it runs, store the response time = current total_time
+                if response_time[i] == -1:
+                    response_time[i] = total_time
+
                 done = False
                 if remaining_bt[i] > quantum: 
                     total_time += quantum  # For example, 24 > 4, the total time will be 4
@@ -170,22 +182,27 @@ def round_robin_scheduling():
     waiting_time = [turnaround_time[i] - burst_times[i] for i in range(n)]
     avg_wt = sum(waiting_time) / n
     avg_tat = sum(turnaround_time) / n
+    avg_rt = sum(response_time) / n  # 7- average response time
 
-    print("\nProcess\tBurst Time\tTurnaround Time\tWaiting Time")
+    print("\nProcess\tBurst Time\tTurnaround Time\tWaiting Time\tResponse Time")
     for i in range(n):
-        print(f"p{i+1}\t{burst_times[i]}\t\t{turnaround_time[i]}\t\t{waiting_time[i]}")
+        print(f"p{i+1}\t{burst_times[i]}\t\t{turnaround_time[i]}\t\t{waiting_time[i]}\t\t{response_time[i]}")
 
     print(f"\nAverage waiting time-- {avg_wt:.2f}")
     print(f"Average turnaround Time-- {avg_tat:.2f}")
+    print(f"Average response Time-- {avg_rt:.2f}")  # 7- print response time
 
     return {
         "burst_times": burst_times,
         "waiting_times": waiting_time,
         "turnaround_times": turnaround_time,
+        "response_times": response_time,  # 7- return response time
         "quantum": quantum,
         "avg_waiting": avg_wt,
-        "avg_turnaround": avg_tat
+        "avg_turnaround": avg_tat,
+        "avg_response": avg_rt
     }
+
 def sjf_non_preemptive():
     # 1- Collect the Values 
     # 2- Sort the values by arrival time 
@@ -252,13 +269,15 @@ def sjf_non_preemptive():
         "avg_turnaround": avg_turnaround
     }
 def sjf_preemptive():
-    # 1- iterate the values
-    # 2-  Store in dictionary the process and arrival time with burst time and remaining burst time
-    # 3- varibles for tracking , time , complete process , start for track time , finsh to mark
-    # 4- store in the list the process have arrived and still have time
-    # 5- take the shortest process from the list
-    # 6- the process hasn't started record the start time
-    # 7- then mark the process and calculate
+# 1- iterate the values
+# 2-  Store in dictionary the process and arrival time with burst time and remaining burst time
+# 3- varibles for tracking , time , complete process , start for track time , finsh to mark
+# 4- store in the list the process have arrived and still have time
+# 5- take the shortest process from the list
+# 6- the process hasn't started record the start time
+# 7- then mark the process and calculate
+# 8- calculate response time = start time - arrival time
+
     n = int(input("Enter the number of processes: "))
     processes = []
 
@@ -272,6 +291,7 @@ def sjf_preemptive():
     waiting_time = [0] * n
     turnaround_time = [0] * n
     start_times = [-1] * n
+    response_time = [0] * n  # 8- store response time
     finished = [False] * n
 
     while complete < n:
@@ -285,6 +305,7 @@ def sjf_preemptive():
 
             if start_times[pid] == -1:
                 start_times[pid] = time
+                response_time[pid] = time - current['arrival']  # 8- calculate response time
 
             # Run for 1 time unit
             current['remaining'] -= 1
@@ -300,21 +321,25 @@ def sjf_preemptive():
             time += 1  # idle
 
     # Print results manually (without pandas)
-    print("\nProcess\tArrival Time\tBurst Time\tWaiting Time\tTurnaround Time")
+    print("\nProcess\tArrival Time\tBurst Time\tWaiting Time\tTurnaround Time\tResponse Time")
     for i in range(n):
-        print(f"P{i}\t{processes[i]['arrival']}\t\t{processes[i]['burst']}\t\t{waiting_time[i]}\t\t{turnaround_time[i]}")
+        print(f"P{i}\t{processes[i]['arrival']}\t\t{processes[i]['burst']}\t\t{waiting_time[i]}\t\t{turnaround_time[i]}\t\t{response_time[i]}")
 
     print(f"\nAverage Waiting Time: {sum(waiting_time)/n:.2f}")
     print(f"Average Turnaround Time: {sum(turnaround_time)/n:.2f}")
+    print(f"Average Response Time: {sum(response_time)/n:.2f}")  # 8- print average response time
 
     return {
         "arrival_times": [p['arrival'] for p in processes],
         "burst_times": [p['burst'] for p in processes],
         "waiting_times": waiting_time,
         "turnaround_times": turnaround_time,
+        "response_times": response_time,  # 8- return response time
         "avg_waiting": sum(waiting_time) / n,
-        "avg_turnaround": sum(turnaround_time) / n
+        "avg_turnaround": sum(turnaround_time) / n,
+        "avg_response": sum(response_time) / n  # 8- include average response time
     }
+
 
 if __name__ == "__main__":
     main()

@@ -39,7 +39,7 @@ def fcfs_scheduling():
     for i in range(n):
         pid, at, bt = processes[i]
         if start_time < at:
-            start_time = at  # Wait until the process arrives
+            start_time = at  # wait until the process arrives
         waiting_times[i] = start_time - at
         turnaround_times[i] = waiting_times[i] + bt
         start_time += bt
@@ -168,14 +168,14 @@ def round_robin_scheduling():
     turnaround_time = [0] * n
     total_time = 0
     context_switches = 0
-    start_time = [-1] * n  # Track first execution time
+    start_time = [-1] * n  # Trackfirst execution time
 
     while True:
         done = True
         for i in range(n):
             if remaining_bt[i] > 0:
                 done = False
-                if start_time[i] == -1:  # Record first execution time
+                if start_time[i] == -1:  # for first execution time
                     start_time[i] = total_time
                 if remaining_bt[i] > quantum:
                     total_time += quantum
@@ -191,18 +191,23 @@ def round_robin_scheduling():
             break
 
     waiting_time = [turnaround_time[i] - burst_times[i] for i in range(n)]
+    response_time = start_time  # Response time is when process first gets CPU
     avg_wt = sum(waiting_time) / n
     avg_tat = sum(turnaround_time) / n
+    avg_rt = sum(response_time) / n
 
-    print("\n{:<10} {:<10} {:<15} {:<15} {:<15}".format("Process", "Burst", "Turnaround", "Waiting", "Response"))
+    print("\n{:<10} {:<10} {:<15} {:<15} {:<15}".format(
+        "Process", "Burst", "Turnaround", "Waiting", "Response"))
     for i in range(n):
         print("{:<10} {:<10} {:<15} {:<15} {:<15}".format(
-            f"P{i + 1}", burst_times[i], turnaround_time[i], waiting_time[i], start_time[i]
+            f"P{i + 1}", burst_times[i], turnaround_time[i], waiting_time[i], response_time[i]
         ))
 
     print(f"\nAverage Waiting Time: {avg_wt:.2f}")
     print(f"Average Turnaround Time: {avg_tat:.2f}")
+    print(f"Average Response Time: {avg_rt:.2f}")
     print(f"Total Context Switches: {context_switches}")
+
 
     return {
         "burst_times": burst_times,
@@ -331,12 +336,13 @@ def sjf_preemptive():
         if ready:
             current = min(ready, key=lambda p: p['remaining'])
             pid = current['pid']
-            if start_times[pid] == -1:
+            if start_times[pid] == -1: # The i hasn't become yet here
                 start_times[pid] = time
-            current['remaining'] -= 1
+            current['remaining'] -= 1 # we took a step so we subtract
             time += 1
             if current['remaining'] == 0:
-                complete += 1
+                complete += 1 # increment the complete , calcualte the tt
+                # Calculation
                 turnaround_time[pid] = time - current['arrival']
                 waiting_time[pid] = turnaround_time[pid] - current['burst']
                 finished[pid] = True
@@ -353,6 +359,8 @@ def sjf_preemptive():
 
     print(f"\nAverage Waiting Time: {sum(waiting_time) / n:.2f}")
     print(f"Average Turnaround Time: {sum(turnaround_time) / n:.2f}")
+    print(f"Average response time Time: {sum(response_time) / n:.2f}")
+
 
     return {
         "arrival_times": [p['arrival'] for p in processes],

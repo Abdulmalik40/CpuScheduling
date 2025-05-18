@@ -1,3 +1,5 @@
+# Abdulmalik : Round Robin , SJFS Non , SJFS Prem , Steps of Algorthim
+# Amrou      : FCFS , Priorty , Recompsion code , Main file
 import time
 import sys
 from Algorthims import (
@@ -22,7 +24,7 @@ def main():
         try:
             choice = int(input("Enter your choice (1-6): "))
         except ValueError:
-            print("⚠️  Invalid input! Please enter a number between 1 and 6.")
+            print(" Invalid input! Please enter a number between 1 and 6.")
             continue
 
         print("\n" + "-" * 50)
@@ -38,7 +40,7 @@ def main():
         elif choice == 5:
             round_robin_scheduling()
         elif choice == 6:
-            print("👋 Exiting the program", end="", flush=True)
+            print("Exiting the program", end="", flush=True)
             for _ in range(3):
                 time.sleep(0.5)
                 print(".", end="", flush=True)
@@ -46,7 +48,7 @@ def main():
 
             break
         else:
-            print("❌ Invalid choice! Please select a valid option (1-6).")
+            print("Invalid choice Please select a valid option (1-6).")
 
 
 if __name__ == "__main__":
